@@ -24,10 +24,7 @@ for i=1:length(x)-1
 end
 end
 
-%This Function include two type of boundary conditions
-% Respectively, including condition (a) and (b)
-% a) S'(x1)=y1' && S'(xn)=yn'
-% b) S'(x1)=y1' && S'(xn)=yn' && S''(x1)=S''(xn)=0  
+%This Function include two type of boundary conditions are  and b respectively 
 function func = cubicSpline(x,y,varargin)
 if length(x)~=length(y)
     disp('the number of set[x,y] no match,please check it');
@@ -38,7 +35,6 @@ A=zeros(size([x;y]',1));
 e=zeros(size([x;y]',1),1);
 
 if ~isempty(varargin) && length(varargin)==2
-    % condition a)
     dP1=varargin{1};
     dPn=varargin{2};
     n=length(x);
@@ -49,7 +45,6 @@ if ~isempty(varargin) && length(varargin)==2
     e(1)=6*((y(2)-y(1))/h(1)-dP1)/h(1);
     e(n)=6*(dPn-(y(n)-y(n-1))/h(n-1))/h(n-1);
 else
-    % condition b)
     n=length(x);
     A(1,1)=1;
     A(n,n)=1;
