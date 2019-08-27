@@ -8,8 +8,8 @@ end
 end
 
 function [openList,closeList]=BlockVertex(Vcurr,openList,closeList)
-%½«±»×èÈûµÄ½Úµã£¬Èç¹ûÔÚclosList¾ÍÈÓµ½openList£¬rhs=inf,gÎ¬³Ö²»±ä¡£¶øÔÚopenList´ÓÀïÃæÒÆ³öÀ´£¬Ö±½Ó³õÊ¼»¯³É¿Õ°×µÄ£¬rhs=inf£¬g=inf
-%×¢Òâ»¹Òª¸üĞÂk=[k1,k2]µÄ
+%å°†è¢«é˜»å¡çš„èŠ‚ç‚¹ï¼Œå¦‚æœåœ¨closListå°±æ‰”åˆ°openListï¼Œrhs=inf,gç»´æŒä¸å˜ã€‚è€Œåœ¨openListä»é‡Œé¢ç§»å‡ºæ¥ï¼Œç›´æ¥åˆå§‹åŒ–æˆç©ºç™½çš„ï¼Œrhs=infï¼Œg=inf
+%æ³¨æ„è¿˜è¦æ›´æ–°k=[k1,k2]çš„
 Vcurr = CalKeyVal(Vcurr);
 [openList,closeList]=Operate(closeList,"REMOVE",Vcurr,openList);
 end
@@ -31,13 +31,13 @@ end
 
 function Vcurr = CalKeyVal(Vcurr)
 global Vend;
-%Æô·¢Ê½ÊıÖµh£¬ÓÉÓÚ²»ĞèÒª¿¼ÂÇµØÍ¼×èÈûÇé¿ö£¬¿ÉÒÔÖ±½ÓÓÃ¾àÀëº¯Êı¼ÆËãµÃµ½
+%å¯å‘å¼æ•°å€¼hï¼Œç”±äºä¸éœ€è¦è€ƒè™‘åœ°å›¾é˜»å¡æƒ…å†µï¼Œå¯ä»¥ç›´æ¥ç”¨è·ç¦»å‡½æ•°è®¡ç®—å¾—åˆ°
 Vcurr.k(1)=min(Vcurr.g,Vcurr.rhs)+pdist([Vcurr.coord;Vend.coord],'cityblock');
 Vcurr.k(2)=min(Vcurr.g,Vcurr.rhs);
 end
 
-%³É±¾º¯ÊıÊÇÓÃÓÚÏàÁÚ½ÚµãµÄ´ú¼ÛÖµ£¬ĞèÒª¿¼ÂÇµØÍ¼×èÈûÇé¿öÏÂµÄ´ú¼Û£¬Èô×èÈûÎªinf£¬Èô²»×èÈûÎªÁ½½Úµã¼äµÄ¾àÀë
-%Æä¾àÀë¼ÆËã·½·¨¿ÉÒÔÊ¹ÓÃMatlabµÄÄÚ½¨º¯Êıpdist()´úÌæ
+%æˆæœ¬å‡½æ•°æ˜¯ç”¨äºç›¸é‚»èŠ‚ç‚¹çš„ä»£ä»·å€¼ï¼Œéœ€è¦è€ƒè™‘åœ°å›¾é˜»å¡æƒ…å†µä¸‹çš„ä»£ä»·ï¼Œè‹¥é˜»å¡ä¸ºinfï¼Œè‹¥ä¸é˜»å¡ä¸ºä¸¤èŠ‚ç‚¹é—´çš„è·ç¦»
+%å…¶è·ç¦»è®¡ç®—æ–¹æ³•å¯ä»¥ä½¿ç”¨Matlabçš„å†…å»ºå‡½æ•°pdist()ä»£æ›¿
 function costVal = Cost(Vcurr,Vgoal,distMetric)
 global map
 if nargin < 3
@@ -67,8 +67,8 @@ while(Compare(TopKey(opList),Vend) || Vend.rhs>Vend.g)
     if Vcurr.g > Vcurr.rhs
         Vcurr.g = Vcurr.rhs;
         [opList,closList] = Operate(opList,"REMOVE_VERTEX",Vcurr,closList);     
-        %ÖÕÖ¹Ìõ¼ş´¥·¢£¬¸ù¾İÇé¿ö½«¸ÃÅĞ¶ÏÌõ¼ş·Åµ½ĞĞ65µ½ĞĞ70Ö®¼ä
-        %Èç¹û²»Ğ´Ò²Ã»ÎÊÌâ£¬¸Ãº¯Êı×îºóÒ»´ÎÑ­»·ÒÔVendÎªTopKey£¬¶ÔÆäÖÜ±ßVsucc½ÚµãÖ´ĞĞÒ»´ÎÀ©Õ¹£¬µÈµ½ÏÂÒ»ÂÖµÄTopKeyÂú×ãTopKey>Vend,Ñ­»·ÖÕÖ¹
+        %ç»ˆæ­¢æ¡ä»¶è§¦å‘ï¼Œæ ¹æ®æƒ…å†µå°†è¯¥åˆ¤æ–­æ¡ä»¶æ”¾åˆ°è¡Œ65åˆ°è¡Œ70ä¹‹é—´
+        %å¦‚æœä¸å†™ä¹Ÿæ²¡é—®é¢˜ï¼Œè¯¥å‡½æ•°æœ€åä¸€æ¬¡å¾ªç¯ä»¥Vendä¸ºTopKeyï¼Œå¯¹å…¶å‘¨è¾¹VsuccèŠ‚ç‚¹æ‰§è¡Œä¸€æ¬¡æ‰©å±•ï¼Œç­‰åˆ°ä¸‹ä¸€è½®çš„TopKeyæ»¡è¶³TopKey>Vend,å¾ªç¯ç»ˆæ­¢
         if Vcurr.coord == Vend.coord
             Vend = Vcurr;
             return
@@ -84,7 +84,7 @@ while(Compare(TopKey(opList),Vend) || Vend.rhs>Vend.g)
     elseif Vcurr.rhs > Vcurr.g
         Vcurr.g = inf;
         Vsucc = GetVpredVertex(Vcurr,opList,closList);
-        Vsucc = [Vsucc Vcurr]; %ÂÛÎÄÎ±ÂëÖĞÓĞÕâÒ»ĞĞ£¬µ«ÊÇÊµ¼ÊÔËĞĞÖĞVcurr²¢Ã»ÓĞ½øĞĞ²Ù×÷£¬¿ÉÒÔ¸ù¾İÇé¿ö×¢ÊÍµô
+        Vsucc = [Vsucc Vcurr]; %è®ºæ–‡ä¼ªç ä¸­æœ‰è¿™ä¸€è¡Œï¼Œä½†æ˜¯å®é™…è¿è¡Œä¸­Vcurrå¹¶æ²¡æœ‰è¿›è¡Œæ“ä½œï¼Œå¯ä»¥æ ¹æ®æƒ…å†µæ³¨é‡Šæ‰
         for i = 1:length(Vsucc)
             if Vsucc(i).coord~=Vstart.coord && isParentVertex(Vsucc(i),Vcurr)   
                 [Vsucc(i),opList,closList] = upDateParentVetrex(Vsucc(i),closList,Vcurr);
@@ -95,8 +95,8 @@ end
 end
 
 function Vout = TopKey(opList)
-%°²È«´¦Àí£¬µ±openListÎª¿ÕµÄÊ±ºò¾ÍÍË³öComputeShortestPath()º¯Êı
-%Ò»°ãÇé¿öÏÂ£¬Ö»ÓĞÄ¿±ê½ÚµãÍêÈ«×èÈû²»ÄÜµ½´ïµ¼ÖÂµÄ
+%å®‰å…¨å¤„ç†ï¼Œå½“openListä¸ºç©ºçš„æ—¶å€™å°±é€€å‡ºComputeShortestPath()å‡½æ•°
+%ä¸€èˆ¬æƒ…å†µä¸‹ï¼Œåªæœ‰ç›®æ ‡èŠ‚ç‚¹å®Œå…¨é˜»å¡ä¸èƒ½åˆ°è¾¾å¯¼è‡´çš„
 if isempty(opList)
     Vout=[];
     return
@@ -116,8 +116,8 @@ Vout=opList(topIdx);
 end
 
 function result = Compare(Vcurr,Vgoal)
-%°²È«´¦Àí£¬µ±openListÎª¿ÕµÄÊ±ºò¾ÍÍË³öComputeShortestPath()º¯Êı
-%Ò»°ãÇé¿öÏÂ£¬Ö»ÓĞÄ¿±ê½ÚµãÍêÈ«×èÈû²»ÄÜµ½´ïµ¼ÖÂµÄ
+%å®‰å…¨å¤„ç†ï¼Œå½“openListä¸ºç©ºçš„æ—¶å€™å°±é€€å‡ºComputeShortestPath()å‡½æ•°
+%ä¸€èˆ¬æƒ…å†µä¸‹ï¼Œåªæœ‰ç›®æ ‡èŠ‚ç‚¹å®Œå…¨é˜»å¡ä¸èƒ½åˆ°è¾¾å¯¼è‡´çš„
 if isempty(Vcurr)
     result = false;
     return
@@ -130,11 +130,27 @@ else
 end
 end
 
-%»ñÈ¡ÒÔTopKeyÎªÖĞĞÄµÄ£¬ÖÜ±ß°Ë¸öÏàÁÚ½Úµã½øĞĞÍØÕ¹
-%ÓĞĞ§µÄÖÜ±ß½Úµã£ºÃ»½øĞĞ³õÊ¼»¯µÄ¿Õ°×½Úµã¡¢ÒÑ¾­´æ·ÅÓÚopenListµÄ½Úµã
-%ÎŞĞ§µÄÖÜ±ß½Úµã£º´æÔÚÓÚµØÍ¼ÕÏ°­ÎïÄÚµÄ½Úµã¡¢ÒÑ¾­´æ·ÅÓÚcloseListµÄ½Úµã
-%Èç¹ûÎŞÌõ¼ş£¨ÓĞĞ§ÓëÎŞĞ§£©È«²¿±£Áô£¬ºóĞøµÄ±È½Ï²Ù×÷ÒÀÈ»¿ÉÒÔ°ÑËûÃÇ£¨ÎŞĞ§½Úµã£©È¥µô¡£Ö»ÊÇÉæ¼°µ½Ğ§ÂÊÎÊÌâ
+%è·å–ä»¥TopKeyä¸ºä¸­å¿ƒçš„ï¼Œå‘¨è¾¹å…«ä¸ªç›¸é‚»èŠ‚ç‚¹è¿›è¡Œæ‹“å±•
+%æœ‰æ•ˆçš„å‘¨è¾¹èŠ‚ç‚¹ï¼šæ²¡è¿›è¡Œåˆå§‹åŒ–çš„ç©ºç™½èŠ‚ç‚¹ã€å·²ç»å­˜æ”¾äºopenListçš„èŠ‚ç‚¹
+%æ— æ•ˆçš„å‘¨è¾¹èŠ‚ç‚¹ï¼šå­˜åœ¨äºåœ°å›¾éšœç¢ç‰©å†…çš„èŠ‚ç‚¹ã€å·²ç»å­˜æ”¾äºcloseListçš„èŠ‚ç‚¹
+%å¦‚æœæ— æ¡ä»¶ï¼ˆæœ‰æ•ˆä¸æ— æ•ˆï¼‰å…¨éƒ¨ä¿ç•™ï¼Œåç»­çš„æ¯”è¾ƒæ“ä½œä¾ç„¶å¯ä»¥æŠŠä»–ä»¬ï¼ˆæ— æ•ˆèŠ‚ç‚¹ï¼‰å»æ‰ã€‚åªæ˜¯æ¶‰åŠåˆ°æ•ˆç‡é—®é¢˜
 function Vsucc = GetNearVertex(Vcurr,opList,closList)
+
+outFromMap=false;
+saveFromClosList=false;
+if length(nargin)==4    
+    for i=1:size(ignoreParam,1)
+        switch ignoreParam(i)
+            case {'Map,map,MAP'}
+                outfromMap=true;
+            case {'CloseList','closelist','CLOSELIST'}
+                saveFromClosList=true;
+        end
+    end
+else
+ignoreParam=[];
+end
+
 global map
 xCen = Vcurr.coord(1);
 yCen = Vcurr.coord(2);
@@ -148,11 +164,12 @@ yRows = yRows(yRows~=0);
 [X,Y] = meshgrid(xCols,yRows);
 xyCoord = [X(:),Y(:)];
 
-%ÔÚµØÍ¼ÕÏ°­ÎïÄÚµÄ½ÚµãÌŞ³ı£¬ÊÓÇé¿ö×¢ÊÍµô
-i = map.map(xCols,yRows)==1; 
-i=i';
-xyCoord(i,:)=[];
-
+%å¯¹å‡ºç°åœ¨åœ°å›¾éšœç¢ç‰©å†…çš„VsuccèŠ‚ç‚¹è¿›è¡Œå¤„ç†,ä¸ºtrueèŠ‚ç‚¹ä¿ç•™ï¼ŒfalseèŠ‚ç‚¹ä¸ä¿ç•™
+if outFromMap==true
+    i = map.map(xCols,yRows)==1; 
+    i=i';
+    xyCoord(i,:)=[];
+end
 [~,idx]=ismember([xCen,yCen],xyCoord,'rows');
 xyCoord(idx,:)=[];
 
@@ -176,10 +193,10 @@ for i=1:size(xyCoord,1)
         Vsucc = [Vsucc opList(id1)];
     elseif res2==false
         Vsucc = [Vsucc struct('coord',xyCoord(i,:),'rhs',inf,'g',inf,'k',[inf,inf],'parent',[])];
-%     else  
-%         Vsucc = [Vsucc closList(id2)]; %ÒÑ¾­°üº¬ÔÚclosListÖĞµÄÖÜ±ß½Úµã£¬ÊÓÇé¿ö°ÑËû×¢ÊÍµô
+    elseif res2==true && saveFromClosList==true
+        Vsucc = [Vsucc closList(id2)]; %å¯¹å‡ºç°åœ¨closListçš„è¾“å‡ºèŠ‚ç‚¹Vsuccè¿›è¡Œå¤„ç†ï¼Œä¸ºtrueä¿ç•™ï¼Œä¸ºflaseå»é™¤
     end
-    %±êÖ¾Î»ÖØÖÃ
+    %æ ‡å¿—ä½é‡ç½®
     res1=[];
     res2=[];
 end
@@ -249,7 +266,7 @@ end
 function [opList,closList]= UpdateVetrexs(Vcurr,opList,closList)
 if isListMember(Vcurr,opList)
     opList = Operate(opList,'UPDATE_KEY',Vcurr,[]);
-elseif ~isListMember(Vcurr,opList) && ~isListMember(Vcurr,closList) % && Vcurr.rhs~=Vcurr.g //ÕâÀïµÄVcurr.rhsºÍVcurr.g¿ÉÒÔÊÓÇé¿ö×¢ÊÓµô
+elseif ~isListMember(Vcurr,opList) && ~isListMember(Vcurr,closList) % && Vcurr.rhs~=Vcurr.g //è¿™é‡Œçš„Vcurr.rhså’ŒVcurr.gå¯ä»¥è§†æƒ…å†µæ³¨è§†æ‰
     opList = [opList CalKeyVal(Vcurr)];
 elseif Vcurr.rhs~=Vcurr.g && isListMember(Vcurr,closList)
     [opList,closList] = Operate(closList,'REMOVE_VERTEX',Vcurr,opList);
