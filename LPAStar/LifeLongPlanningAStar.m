@@ -17,9 +17,14 @@ map.map(ux:dx,uy:dy)=1;
 Vcurr = CalKeyVal(Vcurr);
 for i=ux:dx
     for j=uy:dy
-        isListMember(map.map(i,j),closeList)
+        listCoords=vertcat(list.coord);
+        [result,idx] = ismember(Vcurr.coord,listCoords,'rows');        
         [openList,closeList]=Operate(closeList,"REMOVE",Vcurr,openList);
     end
+end
+if ~isempty(listCoords)
+else
+    result = false;
 end
 end
     
@@ -40,7 +45,7 @@ end
 function Vcurr = CalKeyVal(Vcurr)
 global Vend;
 %启发式数值h，由于不需要考虑地图阻塞情况，可以直接用距离函数计算得到
-Vcurr.k(1)=min(Vcurr.g,Vcurr.rhs)+pdist([Vcurr.coord;Vend.coord],'cityblock');
+Vcurr.k(1)=min(Vcurr.g,Vcurr.rhs)+pdist([Vcurr.coord;Vend.coord],'chebychev');
 Vcurr.k(2)=min(Vcurr.g,Vcurr.rhs);
 end
 
@@ -81,7 +86,7 @@ while(Compare(TopKey(opList),Vend) || Vend.rhs>Vend.g)
             Vend = Vcurr;
             return
         end
-        Vsucc = GetNearVertex(Vcurr,opList,closList,["Map";"CloseList"]);        
+        Vsucc = GetNearVertex(Vcurr,opList,closList);        
         for i = 1:length(Vsucc)
             if Vsucc(i).rhs > Vcurr.g+Cost(Vcurr,Vsucc(i),'chebychev')
                 Vsucc(i).parent = [Vcurr.coord;Vsucc(i).parent];
@@ -91,7 +96,7 @@ while(Compare(TopKey(opList),Vend) || Vend.rhs>Vend.g)
         end
     elseif Vcurr.rhs > Vcurr.g
         Vcurr.g = inf;
-        Vsucc = GetVpredVertex(Vcurr,opList,closList);
+        Vsucc = GetNearVertex(Vcurr,opList,closList);
         Vsucc = [Vsucc Vcurr]; %论文伪码中有这一行，但是实际运行中Vcurr并没有进行操作，可以根据情况注释掉
         for i = 1:length(Vsucc)
             if Vsucc(i).coord~=Vstart.coord && isParentVertex(Vsucc(i),Vcurr)   
@@ -205,49 +210,6 @@ for i=1:size(xyCoord,1)
         Vsucc = [Vsucc closList(id2)]; %对出现在closList的输出节点Vsucc进行处理，为true保留，为false去除
     end
     %标志位重置
-    res1=[];
-    res2=[];
-end
-end
-
-function Vsucc = GetVpredVertex(Vcurr,opList,closList,map)
-xCen = Vcurr.coord(1);
-yCen = Vcurr.coord(2);
-
-xCols = [(xCen>1)*(xCen-1),xCen,(xCen<map.size(1))*(xCen+1)];
-xCols = xCols(xCols~=0);
-
-yRows = [(yCen>1)*(yCen-1),yCen,(yCen<map.size(2))*(yCen+1)];
-yRows = yRows(yRows~=0);
-
-[X,Y] = meshgrid(xCols,yRows);
-xyCoord = [X(:),Y(:)];
-
-[~,idx]=ismember([xCen,yCen],xyCoord,'rows');
-xyCoord(idx,:)=[];
-openListCoord=vertcat(opList.coord);
-closeListCoord=vertcat(closList.coord);
-Vsucc=[];
-for i=1:size(xyCoord,1)
-    if ~isempty(openListCoord)
-        [res1,id1]=ismember(xyCoord(i,:),openListCoord,'rows');
-    else
-        res1=false;
-    end
-    
-    if res1==false && ~isempty(closeListCoord)
-        [res2,id2]=ismember(xyCoord(i,:),closeListCoord,'rows');
-    else
-        res2=false;
-    end
-    
-    if res1==true
-        Vsucc = [Vsucc opList(id1)];
-    elseif res2==false
-        Vsucc = [Vsucc struct('coord',xyCoord(i,:),'rhs',inf,'g',inf,'k',[inf,inf],'parent',[])];
-    else  
-        Vsucc = [Vsucc closList(id2)]; 
-    end
     res1=[];
     res2=[];
 end
