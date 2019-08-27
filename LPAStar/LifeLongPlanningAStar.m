@@ -3,21 +3,29 @@ clear global map Vstart Vend
 [openList,closeList]= Init();
 while true
     [openList,closeList]=ComputeShortestPath(openList,closeList);
-%     [openList,closeList]=BlockVertex(Vcurr,openList,closeList);
+    [openList,closeList]=BlockVertex(openList,closeList);
 end
 end
 
-function [openList,closeList]=BlockVertex(Vcurr,openList,closeList)
+function [openList,closeList]=BlockVertex(openList,closeList)
 %将被阻塞的节点，如果在closList就扔到openList，rhs=inf,g维持不变。而在openList从里面移出来，直接初始化成空白的，rhs=inf，g=inf
 %注意还要更新k=[k1,k2]的
-Vcurr = CalKeyVal(Vcurr);
-[openList,closeList]=Operate(closeList,"REMOVE",Vcurr,openList);
-end
+ux=11; uy=14;
+dx=15; dy=25;
+map.map(ux:dx,uy:dy)=1;
 
+Vcurr = CalKeyVal(Vcurr);
+for i=ux:dx
+    for j=uy:dy
+        isListMember(map.map(i,j),closeList)
+        [openList,closeList]=Operate(closeList,"REMOVE",Vcurr,openList);
+    end
+end
+end
+    
 function [opList,closList]= Init()
 startCoord = [1,1];
 endCoord = [999,999];
-
 global map Vstart Vend;
 map = GenMap([1000,1000],[3,3],600,1,'rand');
 Vend   = struct('coord',endCoord,'rhs',inf,'g',inf,'k',[inf,inf],'parent',[]);
@@ -73,7 +81,7 @@ while(Compare(TopKey(opList),Vend) || Vend.rhs>Vend.g)
             Vend = Vcurr;
             return
         end
-        Vsucc = GetNearVertex(Vcurr,opList,closList);        
+        Vsucc = GetNearVertex(Vcurr,opList,closList,["Map";"CloseList"]);        
         for i = 1:length(Vsucc)
             if Vsucc(i).rhs > Vcurr.g+Cost(Vcurr,Vsucc(i),'chebychev')
                 Vsucc(i).parent = [Vcurr.coord;Vsucc(i).parent];
@@ -87,7 +95,8 @@ while(Compare(TopKey(opList),Vend) || Vend.rhs>Vend.g)
         Vsucc = [Vsucc Vcurr]; %论文伪码中有这一行，但是实际运行中Vcurr并没有进行操作，可以根据情况注释掉
         for i = 1:length(Vsucc)
             if Vsucc(i).coord~=Vstart.coord && isParentVertex(Vsucc(i),Vcurr)   
-                [Vsucc(i),opList,closList] = upDateParentVetrex(Vsucc(i),closList,Vcurr);
+                Vsucc(i) = minParentVetrex(Vsucc(i),closList,Vcurr);
+                [opList,closList]= UpdateVetrexs(Vsucc(i),opList,closList);
             end
         end
     end
@@ -134,21 +143,20 @@ end
 %有效的周边节点：没进行初始化的空白节点、已经存放于openList的节点
 %无效的周边节点：存在于地图障碍物内的节点、已经存放于closeList的节点
 %如果无条件（有效与无效）全部保留，后续的比较操作依然可以把他们（无效节点）去掉。只是涉及到效率问题
-function Vsucc = GetNearVertex(Vcurr,opList,closList)
-
+function Vsucc = GetNearVertex(Vcurr,opList,closList,ignoreParam)
 outFromMap=false;
 saveFromClosList=false;
-if length(nargin)==4    
+if nargin==4    
     for i=1:size(ignoreParam,1)
         switch ignoreParam(i)
-            case {'Map,map,MAP'}
-                outfromMap=true;
-            case {'CloseList','closelist','CLOSELIST'}
+            case {"Map","map","MAP"}
+                outFromMap=true;
+            case {"CloseList","closelist","CLOSELIST"}
                 saveFromClosList=true;
         end
     end
 else
-ignoreParam=[];
+    ignoreParam=[];
 end
 
 global map
@@ -194,7 +202,7 @@ for i=1:size(xyCoord,1)
     elseif res2==false
         Vsucc = [Vsucc struct('coord',xyCoord(i,:),'rhs',inf,'g',inf,'k',[inf,inf],'parent',[])];
     elseif res2==true && saveFromClosList==true
-        Vsucc = [Vsucc closList(id2)]; %对出现在closList的输出节点Vsucc进行处理，为true保留，为flase去除
+        Vsucc = [Vsucc closList(id2)]; %对出现在closList的输出节点Vsucc进行处理，为true保留，为false去除
     end
     %标志位重置
     res1=[];
@@ -245,7 +253,7 @@ for i=1:size(xyCoord,1)
 end
 end
 
-function [Vcurr,opList,closList] = upDateParentVetrex(Vcurr,Vold_parent,opList,closList)
+function [Vcurr,opList,closList] = minParentVetrex(Vcurr,Vold_parent,opList,closList)
 Vcurr.parent=Vold_parent;
 Vcurr.rhs=Vold_parent.rhs;
 closListCoords=vertcat(closList.coord);
@@ -260,7 +268,6 @@ for i=1:size(Vcurr.parent,1)
             Vcurr.rhs=Vnew_parent.g+Cost(Vnew_parent,Vcurr,'chebychev');
         end
 end
-[opList,closList]= UpdateVetrexs(Vcurr,opList,closList);
 end
 
 function [opList,closList]= UpdateVetrexs(Vcurr,opList,closList)
@@ -285,10 +292,10 @@ switch upper(opStr)
 end
 end
 
-function result = isListMember(Vcurr,opList)
-openListCoord=vertcat(opList.coord);
-if ~isempty(openListCoord)
-    result = ismember(Vcurr.coord,openListCoord,'rows');
+function result = isListMember(Vcurr,list)
+listCoords=vertcat(list.coord);
+if ~isempty(listCoords)
+    result = ismember(Vcurr.coord,listCoords,'rows');
 else
     result = false;
 end
