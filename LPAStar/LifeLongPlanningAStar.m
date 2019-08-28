@@ -8,29 +8,28 @@ end
 end
 
 function [openList,closeList]=BlockVertex(openList,closeList)
+%这里只是简单验证当节点阻塞时，LPA*是如何进行再扩展
 %将被阻塞的节点，如果在closList就扔到openList，rhs=inf,g维持不变。而在openList从里面移出来，直接初始化成空白的，rhs=inf，g=inf
 %注意还要更新k=[k1,k2]的
 ux=11; uy=14;
 dx=15; dy=25;
 map.map(ux:dx,uy:dy)=1;
-
-Vcurr = CalKeyVal(Vcurr);
 for i=ux:dx
     for j=uy:dy
-        listCoords=vertcat(list.coord);
-        [result,idx] = ismember(Vcurr.coord,listCoords,'rows');        
-        [openList,closeList]=Operate(closeList,"REMOVE",Vcurr,openList);
+        Vcurr.coord=[i,j];
+        [result,idx] = ismember(Vcurr.coord,vertcat(closeList.coord),'rows');
+        if result==true
+            Vcurr=closeList(idx);
+            Vcurr.rhs=inf;
+            [closeList,openList]=Operate(closeList,"REMOVE_VERTEX",Vcurr,openList);
+        end
     end
-end
-if ~isempty(listCoords)
-else
-    result = false;
 end
 end
     
 function [opList,closList]= Init()
-startCoord = [1,1];
-endCoord = [999,999];
+startCoord = [2,5];
+endCoord = [99,99];
 global map Vstart Vend;
 map = GenMap([1000,1000],[3,3],600,1,'rand');
 Vend   = struct('coord',endCoord,'rhs',inf,'g',inf,'k',[inf,inf],'parent',[]);
@@ -86,21 +85,22 @@ while(Compare(TopKey(opList),Vend) || Vend.rhs>Vend.g)
             Vend = Vcurr;
             return
         end
-        Vsucc = GetNearVertex(Vcurr,opList,closList);        
+        Vsucc = GetNearVertex(Vcurr,opList,closList,["Map";"CloseList"]);    
         for i = 1:length(Vsucc)
-            if Vsucc(i).rhs > Vcurr.g+Cost(Vcurr,Vsucc(i),'chebychev')
+            if Vsucc(i).rhs > Vcurr.g+Cost(Vcurr,Vsucc(i),'cityblock')
                 Vsucc(i).parent = [Vcurr.coord;Vsucc(i).parent];
-                Vsucc(i).rhs = Vcurr.g+Cost(Vcurr,Vsucc(i),'chebychev');
+                Vsucc(i).rhs = Vcurr.g+Cost(Vcurr,Vsucc(i),'cityblock');
                 [opList,closList]=UpdateVetrexs(Vsucc(i),opList,closList);
             end
         end
     elseif Vcurr.rhs > Vcurr.g
         Vcurr.g = inf;
+        [opList,closList] = Operate(opList,"UPDATE_VERTEX",Vcurr,closList);     
         Vsucc = GetNearVertex(Vcurr,opList,closList);
         Vsucc = [Vsucc Vcurr]; %论文伪码中有这一行，但是实际运行中Vcurr并没有进行操作，可以根据情况注释掉
         for i = 1:length(Vsucc)
-            if Vsucc(i).coord~=Vstart.coord && isParentVertex(Vsucc(i),Vcurr)   
-                Vsucc(i) = minParentVetrex(Vsucc(i),closList,Vcurr);
+            if Vsucc(i).coord~=Vstart.coord & isParentVertex(Vsucc(i),Vcurr)
+                Vsucc(i) = minParentVetrex(Vsucc(i),Vcurr,closList);
                 [opList,closList]= UpdateVetrexs(Vsucc(i),opList,closList);
             end
         end
@@ -150,14 +150,14 @@ end
 %如果无条件（有效与无效）全部保留，后续的比较操作依然可以把他们（无效节点）去掉。只是涉及到效率问题
 function Vsucc = GetNearVertex(Vcurr,opList,closList,ignoreParam)
 outFromMap=false;
-saveFromClosList=false;
-if nargin==4    
+saveFromClosList=true;
+if nargin==4
     for i=1:size(ignoreParam,1)
         switch ignoreParam(i)
             case {"Map","map","MAP"}
                 outFromMap=true;
             case {"CloseList","closelist","CLOSELIST"}
-                saveFromClosList=true;
+                saveFromClosList=false;
         end
     end
 else
@@ -177,7 +177,7 @@ yRows = yRows(yRows~=0);
 [X,Y] = meshgrid(xCols,yRows);
 xyCoord = [X(:),Y(:)];
 
-%对出现在地图障碍物内的Vsucc节点进行处理,为true节点保留，false节点不保留
+%对出现在地图障碍物内的Vsucc节点进行处理,true剔除存在于障碍物的Vsucc，false对节点Vsucc进行保留
 if outFromMap==true
     i = map.map(xCols,yRows)==1; 
     i=i';
@@ -215,16 +215,16 @@ for i=1:size(xyCoord,1)
 end
 end
 
-function [Vcurr,opList,closList] = minParentVetrex(Vcurr,Vold_parent,opList,closList)
-Vcurr.parent=Vold_parent;
+function Vcurr = minParentVetrex(Vcurr,Vold_parent,closList)
+Vcurr.parent=Vold_parent.coord;
 Vcurr.rhs=Vold_parent.rhs;
 closListCoords=vertcat(closList.coord);
-if ~isempty(closListCoords)
+if isempty(closListCoords)
     return
 end
 for i=1:size(Vcurr.parent,1)
         [res,idx]=ismember(Vcurr.parent(i,:),closListCoords,'rows');
-        if res==true && Vcurr.rhs > closList(idx).g+Cost(closList(idx),Vcurr,'chebychev')
+        if res==true & Vcurr.rhs > closList(idx).g+Cost(closList(idx),Vcurr,'chebychev')
             Vnew_parent = closList(idx);
             Vcurr.parent = Vnew_parent;
             Vcurr.rhs=Vnew_parent.g+Cost(Vnew_parent,Vcurr,'chebychev');
@@ -247,10 +247,14 @@ popListCoord=vertcat(popVertList.coord);
 [~,idx]=ismember(Vcurr.coord,popListCoord,'rows'); 
 switch upper(opStr)
     case 'REMOVE_VERTEX'
-        popVertList(idx) = [];
         pushVertList = [pushVertList Vcurr];
+        popVertList(idx) = [];
     case 'UPDATE_KEY'
-        popVertList(idx)=CalKeyVal(Vcurr);         
+        popVertList(idx)=CalKeyVal(Vcurr);
+    case 'UPDATE_VERTEX'
+        popVertList(idx)=Vcurr;
+        popVertList(idx)=CalKeyVal(Vcurr);
+
 end
 end
 
